@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'rest_framework',
     'djoser',
     'users',
@@ -56,6 +57,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    
 ]
 
 ROOT_URLCONF = 'full_auth_am.urls'
@@ -135,7 +138,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # REST Framework settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'users.authentication.CustomJWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
@@ -144,7 +147,9 @@ REST_FRAMEWORK = {
 
 # DJOSER settings
 DJOSER = {
-    'PASSWORD_RESET_CONFIRM_URL': 'password/reset/{uid}/{token}',
+    'PASSWORD_RESET_CONFIRM_URL': 'password-reset/{uid}/{token}',
+    'PASSWORD_CHANGED_EMAIL_CONFIRMATION': True,
+    'PASSWORD_RESET_CONFIRM_RETYPE': True,
     'USER_CREATE_PASSWORD_RETYPE': True,
     'ACTIVATION_URL': 'activate/{uid}/{token}',
     'SEND_CONFIRMATION_EMAIL': True,
@@ -152,5 +157,32 @@ DJOSER = {
     'TOKEN_MODEL': None,
     
 }
+#Custom Auth settings
+AUTH_COOKIE_NAME = 'access'
+AUTH_COOKIE_ACCESS_MAX_AGE = 60 * 5
+AUTH_COOKIE_REFRESH_MAX_AGE = 60 * 60 * 24 
+AUTH_COOKIE_SECURE = getenv('AUTH_COOKIE_SECURE', 'True') == 'True'
+AUTH_COOKIE_HTTP_ONLY = True
+AUTH_COOKIE_PATH = '/'
+AUTH_COOKIE_SAME_SITE = 'None'
+
 
 AUTH_USER_MODEL = 'users.UserProfile'
+
+# Email settings
+EMAIL_BACKEND = "django_ses.SESBackend"
+AWS_SES_ACCESS_KEY_ID = getenv('AWS_SES_ACCESS_KEY_ID')
+AWS_SES_SECRET_ACCESS_KEY = getenv('AWS_SES_SECRET_ACCESS_KEY')
+AWS_SES_REGION_NAME = getenv('AWS_SES_REGION_NAME')
+AWS_SES_REGION_ENDPOINT = f'email.{AWS_SES_REGION_NAME}.amazonaws.com'
+AWS_FROM_EMAIL = getenv('AWS_FROM_EMAIL')
+USE_SES_V2 = True
+DOMAIN = getenv('DOMAIN')
+SITE_NAME = 'Aery Media Photography'
+# The email you'll be sending emails from
+DEFAULT_FROM_EMAIL = getenv('AWS_FROM_EMAIL', default='noreply@gmail.com')
+
+
+CORS_ALLOWED_ORIGINS = getenv('CORS_ALLOWED_ORIGNS', 'http://localhost:3000,http://127.0.0.1:3000').split(',')
+
+CORS_ALLOW_CREDENTIALS = True
